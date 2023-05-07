@@ -100,14 +100,16 @@ def get_datasets(n_devices,
     return result
 
   def tokenize(d):
-    return {'inputs': tf_encode(d['Source'])[:max_length],
-            'targets': d['Target']}
+    encoded = tf_encode(d['Source'])[:max_length]
+    return {'inputs': encoded,
+            'targets': d['Target'],
+            'lengths': len(encoded)}
 
   train_dataset = train_dataset.map(tokenize, num_parallel_calls=AUTOTUNE)
   val_dataset = val_dataset.map(tokenize, num_parallel_calls=AUTOTUNE)
   test_dataset = test_dataset.map(tokenize, num_parallel_calls=AUTOTUNE)
 
-  max_shape = {'inputs': [max_length], 'targets': []}
+  max_shape = {'inputs': [max_length], 'targets': [], 'lengths': []}
   train_dataset = train_dataset.shuffle(
       buffer_size=1024, reshuffle_each_iteration=True).padded_batch(
           batch_size, padded_shapes=max_shape)
